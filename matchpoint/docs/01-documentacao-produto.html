@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MatchPoint UFBA — Documentação do Produto e Regras de Negócio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --primary:#2563EB; --primary-dark:#1D4ED8;
+    --ink:#0F172A; --slate:#475569; --slate-light:#64748B; --muted:#94A3B8;
+    --line:#E2E8F0; --bg:#F8FAFC; --bg-soft:#F1F5F9;
+    --green:#16A34A; --amber:#D97706; --red:#DC2626;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Inter',-apple-system,'Segoe UI',Roboto,sans-serif;
+    color:var(--ink); background:var(--bg); line-height:1.65; font-size:15px;
+  }
+  .page{max-width:880px;margin:0 auto;padding:0 28px 80px}
+
+  /* Capa */
+  .cover{
+    background:linear-gradient(135deg,#1E3A8A 0%,var(--primary) 55%,#3B82F6 100%);
+    color:#fff;margin:0 -28px 48px;padding:96px 56px 72px;border-radius:0 0 32px 32px;
+  }
+  .cover .kicker{font-size:13px;letter-spacing:3px;text-transform:uppercase;color:#BFDBFE;font-weight:700}
+  .cover h1{font-size:44px;font-weight:900;line-height:1.1;margin:16px 0 12px;letter-spacing:-1px}
+  .cover .sub{font-size:18px;color:#DBEAFE;font-weight:500;max-width:560px}
+  .cover .meta{margin-top:40px;display:flex;gap:32px;flex-wrap:wrap;font-size:13px;color:#BFDBFE}
+  .cover .meta b{display:block;color:#fff;font-size:15px;font-weight:700;margin-top:2px}
+
+  h2{font-size:26px;font-weight:800;letter-spacing:-.5px;margin:56px 0 6px;padding-top:16px;border-top:3px solid var(--ink)}
+  h2 .num{color:var(--primary);font-weight:900;margin-right:10px}
+  h3{font-size:19px;font-weight:700;margin:32px 0 8px;color:var(--ink)}
+  h4{font-size:15px;font-weight:700;margin:20px 0 6px;color:var(--slate)}
+  p{margin:10px 0;color:#1E293B}
+  ul,ol{margin:10px 0 10px 22px}
+  li{margin:6px 0}
+  strong{color:var(--ink);font-weight:700}
+  a{color:var(--primary)}
+
+  .lead{font-size:17px;color:var(--slate);font-weight:500}
+
+  /* Sumário */
+  .toc{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px 28px;margin:8px 0 16px}
+  .toc h2{border:0;margin:0 0 12px;padding:0;font-size:14px;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+  .toc ol{margin:0;columns:2;column-gap:40px;list-style:none;counter-reset:t}
+  .toc li{counter-increment:t;margin:7px 0;font-size:14px;font-weight:600;break-inside:avoid}
+  .toc li::before{content:counter(t,decimal-leading-zero);color:var(--primary);font-weight:800;margin-right:10px}
+
+  /* Tabelas */
+  table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14px;background:#fff;border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+  th{background:var(--ink);color:#fff;text-align:left;padding:11px 14px;font-weight:600;font-size:13px}
+  td{padding:11px 14px;border-top:1px solid var(--line);vertical-align:top}
+  tr:nth-child(even) td{background:var(--bg)}
+  code{background:var(--bg-soft);padding:2px 6px;border-radius:5px;font-family:'SF Mono',Consolas,monospace;font-size:13px;color:var(--primary-dark)}
+
+  /* Callouts */
+  .box{border-radius:14px;padding:18px 20px;margin:20px 0;border:1px solid var(--line);background:#fff}
+  .box .t{font-weight:800;font-size:14px;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+  .box.formula{background:#EFF6FF;border-color:#BFDBFE}
+  .box.formula .t{color:var(--primary-dark)}
+  .box.info{background:#F0FDF4;border-color:#BBF7D0}
+  .box.info .t{color:var(--green)}
+  .box.warn{background:#FFFBEB;border-color:#FDE68A}
+  .box.warn .t{color:var(--amber)}
+  .box.crit{background:#FEF2F2;border-color:#FECACA}
+  .box.crit .t{color:var(--red)}
+  .formula-eq{font-family:'SF Mono',Consolas,monospace;font-size:15px;background:#fff;border:1px solid #BFDBFE;border-radius:10px;padding:14px 16px;margin-top:10px;color:var(--ink);font-weight:600;text-align:center}
+
+  /* Badges de viabilidade */
+  .badges{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}
+  .vb{flex:1;min-width:200px;border-radius:14px;padding:16px 18px;color:#fff}
+  .vb.alta{background:var(--green)} .vb.media{background:var(--amber)} .vb.baixa{background:var(--red)}
+  .vb .lbl{font-size:18px;font-weight:900} .vb .rng{font-size:13px;opacity:.9;margin-top:2px}
+
+  /* Cards de perfil */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:18px 0}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+  .card h4{margin:0 0 8px;color:var(--primary)}
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:var(--bg-soft);color:var(--slate)}
+
+  .flow{counter-reset:s;margin:16px 0}
+  .flow .step{display:flex;gap:14px;margin:12px 0;align-items:flex-start}
+  .flow .n{counter-increment:s;flex:none;width:30px;height:30px;border-radius:50%;background:var(--primary);color:#fff;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center}
+  .flow .n::before{content:counter(s)}
+  .flow .step > div{padding-top:3px}
+
+  footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--line);color:var(--muted);font-size:13px;text-align:center}
+
+  @media print{
+    body{background:#fff;font-size:11.5pt}
+    .page{max-width:none;padding:0}
+    .cover{margin:0 0 30px;border-radius:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    h2{break-after:avoid}
+    table,.box,.grid,.badges{break-inside:avoid}
+    th{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .vb,.cover{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+  @media(max-width:640px){.toc ol{columns:1}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="cover">
+    <div class="kicker">Documentação do Produto</div>
+    <h1>MatchPoint UFBA</h1>
+    <div class="sub">Aplicativo para atléticas da UFBA organizarem treinos e jogos com base no Índice de Viabilidade.</div>
+    <div class="meta">
+      <div>Documento<b>Produto &amp; Regras de Negócio</b></div>
+      <div>Versão do app<b>1.0.0 — MVP (V1)</b></div>
+      <div>Plataformas<b>Android &amp; iOS</b></div>
+      <div>Contexto<b>Projeto acadêmico — 2026.1</b></div>
+    </div>
+  </header>
+
+  <nav class="toc">
+    <h2>Sumário</h2>
+    <ol>
+      <li>Visão geral do produto</li>
+      <li>Perfis de usuário</li>
+      <li>Índice de Viabilidade</li>
+      <li>Taxa de Confiabilidade e Streak</li>
+      <li>Ranking de jogadores</li>
+      <li>Regras de acesso aos eventos</li>
+      <li>Ciclo de vida do evento</li>
+      <li>Check-in por GPS</li>
+      <li>Encerramento e confiabilidade</li>
+      <li>Quórum mínimo flexível</li>
+      <li>Alerta de W.O.</li>
+      <li>Materiais e alerta de bola</li>
+      <li>Telas e navegação</li>
+      <li>Roadmap de versões</li>
+      <li>Glossário</li>
+    </ol>
+  </nav>
+
+  <h2><span class="num">01</span>Visão geral do produto</h2>
+  <p class="lead">O MatchPoint UFBA é um aplicativo mobile híbrido (Flutter) que ajuda as atléticas da UFBA a organizarem treinos e jogos esportivos, reduzindo cancelamentos de última hora e "furos" de quórum.</p>
+  <p>O sistema central é o <strong>Índice de Viabilidade</strong>: um score de 0 a 100% que indica a probabilidade de um treino/jogo realmente acontecer, considerando quantos jogadores confirmaram, o histórico de presença do grupo e a previsão do tempo.</p>
+  <h3>Problema que resolve</h3>
+  <ul>
+    <li><strong>Cancelamentos de última hora</strong> por falta de jogadores ou chuva, sem aviso prévio.</li>
+    <li><strong>Incerteza do organizador</strong>: "vai ter gente suficiente? vale a pena ir até a quadra?"</li>
+    <li><strong>Falta de material</strong>: o jogo marca, mas ninguém leva a bola.</li>
+    <li><strong>Perda do horário da quadra</strong> por faltas consecutivas (regra de W.O.).</li>
+  </ul>
+
+  <h2><span class="num">02</span>Perfis de usuário</h2>
+  <p>O sistema possui dois perfis de usuário.</p>
+  <div class="grid">
+    <div class="card">
+      <h4>Atleta (aluno)</h4>
+      <span class="pill">Auto-cadastro</span>
+      <p style="margin-top:10px">Cadastra-se sozinho via Google Sign-In. Pode ver eventos, confirmar presença, marcar quais materiais vai levar, fazer check-in e acompanhar seu ranking.</p>
+    </div>
+    <div class="card">
+      <h4>Gestor da Atlética</h4>
+      <span class="pill">Código de gestor</span>
+      <p style="margin-top:10px">Qualquer atleta pode se tornar gestor inserindo o <strong>código de gestor</strong> da atlética (tela Editar Perfil). Com isso, passa a criar, editar, encerrar e cancelar eventos, além de acessar o dashboard e a lista de confirmados.</p>
+    </div>
+  </div>
+
+  <h2><span class="num">03</span>Índice de Viabilidade</h2>
+  <p class="lead">É o coração do produto. Combina três fatores ponderados num único número de 0 a 100%.</p>
+
+  <div class="box formula">
+    <div class="t">⨏ Fórmula</div>
+    <div class="formula-eq">Viabilidade = (Quórum × 0,20) + (Clima × 0,45) + (Confiabilidade × 0,35)</div>
+  </div>
+
+  <h3>Os três fatores</h3>
+  <table>
+    <tr><th>Fator</th><th>Peso</th><th>Como é calculado</th><th>Significado</th></tr>
+    <tr><td><strong>Quórum</strong></td><td>20%</td><td><code>mín(confirmados ÷ mínimo, 1.0)</code></td><td>Há gente suficiente confirmada?</td></tr>
+    <tr><td><strong>Clima</strong></td><td>45%</td><td><code>1.0 − (chanceChuva ÷ 100)</code></td><td>O tempo vai colaborar? (maior peso)</td></tr>
+    <tr><td><strong>Confiabilidade</strong></td><td>35%</td><td><code>1.0 − faltaMédia do grupo</code></td><td>Quem confirmou costuma comparecer?</td></tr>
+  </table>
+
+  <h3>Classificação visual (badge)</h3>
+  <p>O atleta não vê o percentual exato, vê um badge colorido nos cards. O percentual numérico só aparece para gestores.</p>
+  <div class="badges">
+    <div class="vb alta"><div class="lbl">Alta</div><div class="rng">≥ 70% · Alta Viabilidade</div></div>
+    <div class="vb media"><div class="lbl">Méd.</div><div class="rng">40–69% · Risco Moderado</div></div>
+    <div class="vb baixa"><div class="lbl">Baixa</div><div class="rng">&lt; 40% · Baixa Viabilidade</div></div>
+  </div>
+
+  <h3>Detalhamento para o usuário</h3>
+  <p>Ao tocar no badge, abre-se um painel explicando a contribuição de cada fator, com frases de apoio à decisão (ex.: <em>"Faltam 2 jogadores para o mínimo"</em>, <em>"Alto risco de chuva\ avalie reagendar"</em>). O painel deixa claro quando um fator está indisponível e por quê.</p>
+
+  <h2><span class="num">04</span>Taxa de Confiabilidade e Streak</h2>
+  <p>Cada usuário tem uma <strong>taxa de confiabilidade</strong> que mede o quanto ele cumpre o que confirma.</p>
+  <div class="box formula">
+    <div class="t">⨏ Fórmula</div>
+    <div class="formula-eq">taxaConfiabilidade = comparecimentos ÷ totalConfirmações</div>
+  </div>
+  <ul>
+    <li>Usuários novos começam com <strong>0,5 (50%)</strong> como ponto de partida neutro.</li>
+    <li>É atualizada automaticamente após cada evento, com base no <strong>check-in por GPS</strong>.</li>
+    <li>Ao usuário, é exibida como <strong>streak de presenças consecutivas</strong> no perfil, não como percentual. É o indicador de engajamento visível.</li>
+    <li>Internamente, alimenta o fator Confiabilidade do Índice de Viabilidade.</li>
+  </ul>
+  <div class="box crit">
+    <div class="t">✦ Quebra de streak</div>
+    <p style="margin:0">Se o usuário <strong>confirma presença mas não faz check-in</strong>, ao encerrar o evento sua streak é <strong>zerada</strong> e a taxa recalculada (a falta já estava refletida no denominador). Comparecer mantém a sequência; faltar reinicia do zero.</p>
+  </div>
+
+  <h2><span class="num">05</span>Ranking de jogadores</h2>
+  <p>Cada atlética tem um ranking interno que recompensa quem é confiável <em>e</em> participativo.</p>
+  <div class="box formula">
+    <div class="t">⨏ Fórmula (ponderada 70/30)</div>
+    <div class="formula-eq">pontuação = (taxaConfiabilidade × 0,70) + (comparecimentos ÷ máxDaAtlética × 0,30)</div>
+  </div>
+  <ul>
+    <li><strong>70%</strong> — taxa de presença (qualidade: você cumpre o que confirma).</li>
+    <li><strong>30%</strong> — volume de comparecimentos relativo a quem mais comparece na atlética.</li>
+    <li>Exibido como seção dentro do <strong>Perfil</strong> (não em aba separada), com medalhas para o pódio.</li>
+    <li>Um botão de informação explica a fórmula ao usuário, mostrando como subir no ranking.</li>
+  </ul>
+
+  <h2><span class="num">06</span>Regras de acesso aos eventos</h2>
+  <p>Ao criar um evento, o gestor define quem pode confirmar presença.</p>
+  <table>
+    <tr><th>Regra</th><th>Quem pode confirmar</th><th>Indicação visual</th></tr>
+    <tr><td><strong>Aberto a todos</strong></td><td>Qualquer usuário do app.</td><td>🌐 Aberto a todos</td></tr>
+    <tr><td><strong>Atléticas parceiras</strong></td><td>Membros da atlética organizadora <em>e</em> das atléticas parceiras selecionadas.</td><td>🤝 Parceiros</td></tr>
+    <tr><td><strong>Apenas minha atlética</strong></td><td>Somente membros da atlética organizadora.</td><td>🔒 Restrito</td></tr>
+  </table>
+  <p>Nos cards da listagem aparece um selo do tipo de acesso. Na tela de detalhe, são listadas exatamente <strong>quais atléticas</strong> podem confirmar. Quem não tem acesso vê um aviso no lugar do botão "Confirmar Presença".</p>
+
+  <h2><span class="num">07</span>Ciclo de vida do evento</h2>
+  <p>Um evento passa por três status possíveis.</p>
+  <table>
+    <tr><th>Status</th><th>Significado</th><th>Transição</th></tr>
+    <tr><td><span class="pill" style="background:#DBEAFE;color:#1D4ED8">Aberto</span></td><td>Recebe confirmações e check-ins. Aparece na listagem principal.</td><td>Estado inicial.</td></tr>
+    <tr><td><span class="pill" style="background:#E2E8F0;color:#475569">Encerrado</span></td><td>Finalizado pelo gestor após o horário. Consolida a confiabilidade dos confirmados.</td><td>Aberto → Encerrado (manual, pelo gestor).</td></tr>
+    <tr><td><span class="pill" style="background:#FEE2E2;color:#DC2626">Cancelado</span></td><td>Cancelado pelo organizador. Os confirmados são notificados.</td><td>Aberto → Cancelado (manual).</td></tr>
+  </table>
+  <div class="box info">
+    <div class="t">↻ Notificação de cancelamento</div>
+    <p style="margin:0">Ao abrir o app, quem confirmou presença em um evento cancelado vê um aviso obrigatório ("Estou ciente"). O sistema registra a ciência para não repetir o aviso.</p>
+  </div>
+
+  <h2><span class="num">08</span>Check-in por GPS</h2>
+  <p>A presença real é comprovada por check-in de localização, é o que alimenta a confiabilidade e a streak.</p>
+  <table>
+    <tr><th>Regra</th><th>Valor</th></tr>
+    <tr><td>Raio de proximidade do local</td><td><strong>50 metros</strong></td></tr>
+    <tr><td>Janela de tempo para check-in</td><td>De <strong>2 horas antes</strong> até <strong>6 horas depois</strong> do horário do evento</td></tr>
+    <tr><td>Independência de local</td><td>Funciona em qualquer coordenada cadastrada (CEEF ou local externo)</td></tr>
+    <tr><td>Permissão necessária</td><td>Localização precisa (GPS) no dispositivo</td></tr>
+  </table>
+  <p>Fora da janela de tempo ou do raio, o check-in é recusado com uma mensagem explicativa (ex.: "Check-in abre às 18:00" ou "Você está fora do raio de 50m").</p>
+
+  <h2><span class="num">09</span>Encerramento e atualização de confiabilidade</h2>
+  <p>Quando o gestor encerra um evento (disponível após o horário), o sistema consolida o resultado:</p>
+  <div class="flow">
+    <div class="step"><div class="n"></div><div>O status do evento muda para <strong>Encerrado</strong>.</div></div>
+    <div class="step"><div class="n"></div><div>Quem fez <strong>check-in</strong> mantém a presença já contabilizada e a streak.</div></div>
+    <div class="step"><div class="n"></div><div>Quem <strong>confirmou mas faltou</strong> tem a streak <strong>zerada</strong> e a taxa de confiabilidade recalculada.</div></div>
+    <div class="step"><div class="n"></div><div>O ranking dos envolvidos é atualizado.</div></div>
+    <div class="step"><div class="n"></div><div>O gestor recebe um <strong>resumo</strong>: confirmados, presentes, taxa de comparecimento e quem faltou.</div></div>
+  </div>
+
+  <h2><span class="num">10</span>Quórum mínimo flexível</h2>
+  <div class="box">
+    <p style="margin:0">O mínimo de jogadores pode ser <strong>2 ou menos</strong>. O fator Quórum <strong>nunca bloqueia</strong> um evento, apenas informa. Atléticas autogeridas com quórum intencionalmente baixo não são penalizadas: se o mínimo é atingido, o fator Quórum chega a 100%.</p>
+  </div>
+
+  <h2><span class="num">11</span>Alerta de W.O.</h2>
+  <p>Atléticas perdem o horário da quadra após <strong>3 faltas consecutivas</strong>. O sistema acompanha o contador de faltas consecutivas da atlética e, ao atingir <strong>2 faltas</strong>, deve emitir um alerta crítico aos gestores.</p>
+  <div class="box crit">
+    <div class="t">⚠ Regra crítica</div>
+    <p style="margin:0">Ao chegar em 2 faltas consecutivas: <em>"Atenção: mais uma falta e a atlética perde o horário."</em> O contador e o alerta aparecem no Dashboard do gestor. <strong>(O disparo por push/FCM depende de backend e está no roadmap.)</strong></p>
+  </div>
+
+  <h2><span class="num">12</span>Materiais e alerta de bola</h2>
+  <p>Ao criar o evento, o gestor lista os materiais necessários (Bola, Bomba de ar, Coletes ou itens customizados). Ao confirmar presença, o usuário marca o que vai levar, e pode <strong>editar essa escolha</strong> depois, enquanto não fez check-in.</p>
+  <div class="box warn">
+    <div class="t">⚠ Alerta de bola</div>
+    <p style="margin:0">Se a bola é um material necessário e <strong>nenhum confirmado marcou que vai levá-la</strong>, um aviso aparece no card e no detalhe do evento. A detecção é flexível: reconhece variações como "Bola de Vôlei" ou "BOLA".</p>
+  </div>
+
+  <h2><span class="num">13</span>Telas e navegação</h2>
+  <p>A navegação principal usa uma barra inferior com quatro abas. Telas secundárias (detalhe, criação, dashboard) abrem por cima.</p>
+  <h4>Barra de navegação inferior</h4>
+  <p><span class="pill">🏠 Eventos</span> &nbsp; <span class="pill">➕ Criar</span> &nbsp; <span class="pill">≡ Meus Eventos</span> &nbsp; <span class="pill">👤 Perfil</span></p>
+  <table>
+    <tr><th>Tela</th><th>Função</th><th>Acesso</th></tr>
+    <tr><td>Login</td><td>Entrada via Google Sign-In</td><td>Todos</td></tr>
+    <tr><td>Cadastro</td><td>Curso e atlética após o 1º login</td><td>Novos usuários</td></tr>
+    <tr><td>Eventos (Home)</td><td>Lista com filtros e ordenação por viabilidade</td><td>Todos</td></tr>
+    <tr><td>Detalhe do evento</td><td>Clima, confirmados, índice, materiais, ações</td><td>Todos</td></tr>
+    <tr><td>Criar / Editar evento</td><td>Formulário completo + cancelar</td><td>Gestores</td></tr>
+    <tr><td>Meus Eventos</td><td>Confirmados + Criados (gestores)</td><td>Todos</td></tr>
+    <tr><td>Perfil</td><td>Streak, presenças, ranking, painel do gestor</td><td>Todos</td></tr>
+    <tr><td>Editar Perfil</td><td>Nome, curso, atlética + código de gestor</td><td>Todos</td></tr>
+    <tr><td>Dashboard</td><td>Métricas, comparecimento, top jogadores, W.O.</td><td>Gestores</td></tr>
+    <tr><td>Gerenciar Atlética</td><td>Promover / rebaixar gestores</td><td>Gestores</td></tr>
+  </table>
+  <h4>Filtros da listagem de eventos</h4>
+  <ul>
+    <li><strong>Esporte</strong> (chips rápidos) e <strong>atlética</strong>.</li>
+    <li><strong>Data</strong> específica.</li>
+    <li><strong>Viabilidade mínima</strong> (Qualquer / Média ou + / Alta / Só Baixa).</li>
+    <li><strong>Ordenação</strong>: mais viável (padrão) ou mais próximo (data).</li>
+    <li><strong>Apenas eventos que posso participar</strong> (respeita a regra de acesso).</li>
+  </ul>
+
+  <h2><span class="num">14</span>Roadmap de versões</h2>
+  <div class="grid">
+    <div class="card">
+      <h4>V1 — MVP (atual)</h4>
+      <ul style="margin:8px 0 0">
+        <li>Login Google + cadastro</li>
+        <li>Eventos, filtros e detalhe</li>
+        <li>Confirmação + checklist de materiais</li>
+        <li>Índice de Viabilidade + badge</li>
+        <li>Check-in por GPS</li>
+        <li>Criar / editar / encerrar / cancelar</li>
+        <li>Ranking e Dashboard</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>V2 — Inteligência</h4>
+      <ul style="margin:8px 0 0">
+        <li>Detalhamento avançado do índice</li>
+        <li>Histórico por local/horário</li>
+        <li>Alertas de material faltante</li>
+        <li>Alerta de W.O. via push (FCM)</li>
+      </ul>
+    </div>
+    <div class="card" style="grid-column:1/-1">
+      <h4>V3 — Predição</h4>
+      <ul style="margin:8px 0 0">
+        <li>Notificações preditivas (risco de cancelamento por clima ou falta de bola)</li>
+        <li>Sugestão automática de melhores horários com base em grade + histórico</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2><span class="num">15</span>Glossário</h2>
+  <table>
+    <tr><th>Termo</th><th>Definição</th></tr>
+    <tr><td><strong>Índice de Viabilidade</strong></td><td>Score 0–100% da probabilidade do evento acontecer com sucesso.</td></tr>
+    <tr><td><strong>Quórum</strong></td><td>Número de jogadores confirmados em relação ao mínimo definido.</td></tr>
+    <tr><td><strong>Taxa de Confiabilidade</strong></td><td>Proporção de comparecimentos sobre confirmações de um usuário.</td></tr>
+    <tr><td><strong>Streak</strong></td><td>Sequência atual de presenças consecutivas (check-ins).</td></tr>
+    <tr><td><strong>Check-in</strong></td><td>Confirmação de presença real por GPS, dentro do raio e da janela de tempo.</td></tr>
+    <tr><td><strong>W.O.</strong></td><td>Walkover, perda do horário da quadra por faltas consecutivas da atlética.</td></tr>
+    <tr><td><strong>CEEF</strong></td><td>Complexo Esportivo Educacional da UFBA (local frequente, mas não exclusivo).</td></tr>
+  </table>
+
+  <footer>
+    MatchPoint UFBA · Documentação do Produto e Regras de Negócio · Projeto acadêmico 2026.1<br>
+    Documento gerado a partir do estado atual do aplicativo.
+  </footer>
+
+</div>
+</body>
+</html>

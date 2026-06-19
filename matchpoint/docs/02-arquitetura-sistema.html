@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MatchPoint UFBA — Arquitetura e Sistema</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --primary:#2563EB; --primary-dark:#1D4ED8;
+    --ink:#0F172A; --slate:#475569; --slate-light:#64748B; --muted:#94A3B8;
+    --line:#E2E8F0; --bg:#F8FAFC; --bg-soft:#F1F5F9;
+    --green:#16A34A; --amber:#D97706; --red:#DC2626;
+    --purple:#7C3AED; --cyan:#0891B2; --orange:#EA580C;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Inter',-apple-system,'Segoe UI',Roboto,sans-serif;
+    color:var(--ink); background:var(--bg); line-height:1.65; font-size:15px;
+  }
+  .page{max-width:900px;margin:0 auto;padding:0 28px 80px}
+
+  /* Capa */
+  .cover{
+    background:linear-gradient(135deg,#0F172A 0%,#1E3A8A 45%,#1D4ED8 100%);
+    color:#fff;margin:0 -28px 48px;padding:96px 56px 72px;border-radius:0 0 32px 32px;
+  }
+  .cover .kicker{font-size:13px;letter-spacing:3px;text-transform:uppercase;color:#BFDBFE;font-weight:700}
+  .cover h1{font-size:42px;font-weight:900;line-height:1.1;margin:16px 0 12px;letter-spacing:-1px}
+  .cover .sub{font-size:18px;color:#DBEAFE;font-weight:500;max-width:560px}
+  .cover .meta{margin-top:40px;display:flex;gap:32px;flex-wrap:wrap;font-size:13px;color:#BFDBFE}
+  .cover .meta b{display:block;color:#fff;font-size:15px;font-weight:700;margin-top:2px}
+  .cover .tags{margin-top:28px;display:flex;gap:8px;flex-wrap:wrap}
+  .cover .tag{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);
+    padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;color:#DBEAFE}
+
+  h2{font-size:26px;font-weight:800;letter-spacing:-.5px;margin:56px 0 6px;padding-top:16px;border-top:3px solid var(--ink)}
+  h2 .num{color:var(--primary);font-weight:900;margin-right:10px}
+  h3{font-size:19px;font-weight:700;margin:32px 0 8px;color:var(--ink)}
+  h4{font-size:14px;font-weight:700;margin:20px 0 6px;color:var(--slate);text-transform:uppercase;letter-spacing:.8px}
+  p{margin:10px 0;color:#1E293B}
+  ul,ol{margin:10px 0 10px 22px}
+  li{margin:6px 0}
+  strong{color:var(--ink);font-weight:700}
+  a{color:var(--primary)}
+
+  .lead{font-size:17px;color:var(--slate);font-weight:500;margin:8px 0 20px}
+
+  /* Sumário */
+  .toc{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px 28px;margin:8px 0 16px}
+  .toc h2{border:0;margin:0 0 12px;padding:0;font-size:13px;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+  .toc ol{margin:0;columns:2;column-gap:40px;list-style:none;counter-reset:t}
+  .toc li{counter-increment:t;margin:7px 0;font-size:14px;font-weight:600;break-inside:avoid}
+  .toc li::before{content:counter(t,decimal-leading-zero);color:var(--primary);font-weight:800;margin-right:10px}
+
+  /* Tabelas */
+  table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14px;background:#fff;border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+  th{background:var(--ink);color:#fff;text-align:left;padding:11px 14px;font-weight:600;font-size:13px}
+  td{padding:10px 14px;border-top:1px solid var(--line);vertical-align:top}
+  tr:nth-child(even) td{background:var(--bg)}
+  code{background:var(--bg-soft);padding:2px 6px;border-radius:5px;font-family:'SF Mono',Consolas,monospace;font-size:13px;color:var(--primary-dark)}
+
+  /* Callouts */
+  .box{border-radius:14px;padding:18px 20px;margin:20px 0;border:1px solid var(--line);background:#fff}
+  .box .t{font-weight:800;font-size:14px;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+  .box.info{background:#EFF6FF;border-color:#BFDBFE}
+  .box.info .t{color:var(--primary-dark)}
+  .box.green{background:#F0FDF4;border-color:#BBF7D0}
+  .box.green .t{color:var(--green)}
+  .box.warn{background:#FFFBEB;border-color:#FDE68A}
+  .box.warn .t{color:var(--amber)}
+  .box.crit{background:#FEF2F2;border-color:#FECACA}
+  .box.crit .t{color:var(--red)}
+  .box.dark{background:#0F172A;border-color:#1E293B;color:#E2E8F0}
+  .box.dark .t{color:#93C5FD}
+  .box.dark code{background:#1E293B;color:#7DD3FC;padding:3px 7px}
+
+  /* Blocos de código */
+  pre{background:#0F172A;color:#E2E8F0;border-radius:14px;padding:20px 22px;margin:18px 0;
+    font-family:'SF Mono',Consolas,monospace;font-size:13px;line-height:1.6;overflow-x:auto;border:1px solid #1E293B}
+  pre .c{color:#64748B}
+  pre .k{color:#93C5FD}
+  pre .s{color:#86EFAC}
+  pre .n{color:#FCD34D}
+  pre .t{color:#C4B5FD}
+  pre .r{color:#FCA5A5}
+
+  /* Árvore de diretórios */
+  .tree{background:#0F172A;border-radius:14px;padding:20px 22px;margin:18px 0;
+    font-family:'SF Mono',Consolas,monospace;font-size:13px;line-height:1.8;color:#94A3B8;
+    border:1px solid #1E293B}
+  .tree .dir{color:#93C5FD;font-weight:600}
+  .tree .file{color:#E2E8F0}
+  .tree .cmt{color:#64748B}
+
+  /* Diagrama de fluxo */
+  .flow{display:flex;gap:0;align-items:stretch;margin:20px 0;flex-wrap:wrap}
+  .flow-step{flex:1;min-width:130px;background:#fff;border:1px solid var(--line);
+    padding:14px 12px;text-align:center;position:relative}
+  .flow-step:first-child{border-radius:12px 0 0 12px}
+  .flow-step:last-child{border-radius:0 12px 12px 0}
+  .flow-step .icon{font-size:20px;margin-bottom:6px}
+  .flow-step .lbl{font-size:11px;font-weight:700;color:var(--slate);text-transform:uppercase;letter-spacing:.6px}
+  .flow-step .val{font-size:13px;font-weight:700;color:var(--ink);margin-top:3px}
+  .flow-arr{display:flex;align-items:center;color:var(--muted);font-size:18px;padding:0 2px;background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+
+  /* Camadas de arquitetura */
+  .arch{display:flex;flex-direction:column;gap:3px;margin:20px 0}
+  .arch-layer{border-radius:10px;padding:14px 20px;display:flex;align-items:center;gap:14px}
+  .arch-layer .layer-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+  .arch-layer .layer-name{font-weight:800;font-size:14px}
+  .arch-layer .layer-desc{font-size:12px;margin-top:2px;opacity:.85}
+  .arch-layer.ui{background:#EFF6FF;color:#1E40AF}
+  .arch-layer.state{background:#F5F3FF;color:#4C1D95}
+  .arch-layer.services{background:#F0FDF4;color:#14532D}
+  .arch-layer.models{background:#FFFBEB;color:#78350F}
+  .arch-layer.firebase{background:#FEF2F2;color:#7F1D1D}
+
+  /* Stack pills */
+  .pills{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+  .pill{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:5px}
+  .pill.blue{background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE}
+  .pill.green{background:#F0FDF4;color:#15803D;border:1px solid #BBF7D0}
+  .pill.amber{background:#FFFBEB;color:#B45309;border:1px solid #FDE68A}
+  .pill.red{background:#FEF2F2;color:#B91C1C;border:1px solid #FECACA}
+  .pill.purple{background:#F5F3FF;color:#6D28D9;border:1px solid #DDD6FE}
+  .pill.gray{background:#F1F5F9;color:#475569;border:1px solid #E2E8F0}
+
+  /* Cartões de serviço */
+  .service-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0}
+  .service-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+  .service-card .sc-name{font-size:14px;font-weight:800;color:var(--ink);margin-bottom:4px}
+  .service-card .sc-dep{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+  .service-card ul{margin:0;padding-left:16px}
+  .service-card li{font-size:13px;margin:3px 0;color:var(--slate)}
+
+  /* Firestore rules */
+  .rules{background:#0F172A;border-radius:14px;padding:20px 22px;margin:18px 0;
+    font-family:'SF Mono',Consolas,monospace;font-size:12.5px;line-height:1.7;color:#94A3B8;
+    border:1px solid #1E293B;white-space:pre-wrap}
+  .rules .rk{color:#93C5FD}
+  .rules .rs{color:#86EFAC}
+  .rules .rc{color:#64748B}
+  .rules .rv{color:#FCD34D}
+
+  /* Sequência de inicialização */
+  .init-seq{counter-reset:s;margin:16px 0}
+  .init-step{display:flex;gap:14px;margin:10px 0;counter-increment:s}
+  .init-step::before{content:counter(s);width:28px;height:28px;border-radius:50%;
+    background:var(--primary);color:#fff;font-size:12px;font-weight:800;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+  .init-step .is-body{flex:1}
+  .init-step .is-name{font-weight:700;font-size:14px;color:var(--ink)}
+  .init-step .is-desc{font-size:13px;color:var(--slate);margin-top:2px}
+
+  @media(max-width:640px){
+    .cover{padding:60px 24px 48px;margin:0 -28px 32px}
+    .cover h1{font-size:28px}
+    .service-grid{grid-template-columns:1fr}
+    .toc ol{columns:1}
+    .flow{flex-direction:column}
+    .flow-arr{display:none}
+    .flow-step{border-radius:12px!important;border:1px solid var(--line)!important;margin:3px 0}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ══════════════════════ CAPA ══════════════════════ -->
+<div class="cover">
+  <p class="kicker">MatchPoint UFBA · Documento Técnico</p>
+  <h1>Arquitetura<br>e Sistema</h1>
+  <p class="sub">Visão técnica completa: stack, estrutura de código, modelos de dados, serviços, roteamento e decisões de design.</p>
+  <div class="tags">
+    <span class="tag">Flutter 3 · Dart</span>
+    <span class="tag">Firebase Auth + Firestore + FCM</span>
+    <span class="tag">Provider · GoRouter</span>
+    <span class="tag">OpenWeatherMap · GPS</span>
+    <span class="tag">Material 3</span>
+  </div>
+  <div class="meta">
+    <div><span>Versão do app</span><b>1.0.0+1</b></div>
+    <div><span>SDK Dart</span><b>^3.11.4</b></div>
+    <div><span>Atualizado</span><b>Junho 2026</b></div>
+    <div><span>Plataformas</span><b>Android · iOS</b></div>
+  </div>
+</div>
+
+<!-- SUMÁRIO -->
+<div class="toc">
+  <h2>Índice</h2>
+  <ol>
+    <li>Visão Geral da Arquitetura</li>
+    <li>Stack Tecnológica</li>
+    <li>Sequência de Inicialização</li>
+    <li>Padrão de Estado (Provider)</li>
+    <li>Roteamento (GoRouter)</li>
+    <li>Camada de Serviços</li>
+    <li>Modelos de Dados</li>
+    <li>Módulo de Cálculos</li>
+    <li>Regras do Firestore</li>
+    <li>Integrações Externas</li>
+    <li>Fluxos de Dados</li>
+    <li>Decisões Técnicas</li>
+    <li>Dependências</li>
+  </ol>
+</div>
+
+
+<!-- ══════════════════════ 1 ══════════════════════ -->
+<h2><span class="num">01</span>Visão Geral da Arquitetura</h2>
+<p class="lead">Aplicativo mobile híbrido em Flutter com backend serverless no Firebase. Sem servidor próprio — toda a lógica de negócio reside no cliente ou em regras declarativas do Firestore.</p>
+
+<div class="arch">
+  <div class="arch-layer ui">
+    <div class="layer-icon" style="background:#BFDBFE">🖥</div>
+    <div>
+      <div class="layer-name">UI — Screens &amp; Widgets</div>
+      <div class="layer-desc">screens/ · widgets/ — sem lógica de negócio, apenas apresentação e interação</div>
+    </div>
+  </div>
+  <div class="arch-layer state">
+    <div class="layer-icon" style="background:#DDD6FE">⚡</div>
+    <div>
+      <div class="layer-name">Estado — AppProvider (ChangeNotifier)</div>
+      <div class="layer-desc">providers/ · router/ — único provider global; GoRouter ouve o provider para guards</div>
+    </div>
+  </div>
+  <div class="arch-layer services">
+    <div class="layer-icon" style="background:#BBF7D0">⚙️</div>
+    <div>
+      <div class="layer-name">Serviços — FirestoreService · AuthService · WeatherService · LocationService</div>
+      <div class="layer-desc">services/ — chamadas externas, transações, cache de sessão</div>
+    </div>
+  </div>
+  <div class="arch-layer models">
+    <div class="layer-icon" style="background:#FDE68A">📦</div>
+    <div>
+      <div class="layer-name">Modelos — AppUser · Atletica · Evento · ConfirmacaoUsuario · Local</div>
+      <div class="layer-desc">models/ — entidades imutáveis com fromFirestore / toFirestore; utils/ para lógica pura</div>
+    </div>
+  </div>
+  <div class="arch-layer firebase">
+    <div class="layer-icon" style="background:#FECACA">🔥</div>
+    <div>
+      <div class="layer-name">Backend — Firebase Auth · Cloud Firestore · FCM</div>
+      <div class="layer-desc">Infraestrutura gerenciada: autenticação, banco de dados em tempo real, notificações push</div>
+    </div>
+  </div>
+</div>
+
+<div class="box info">
+  <div class="t">ℹ️ Princípio de separação de camadas</div>
+  <p>Screens e widgets <strong>nunca</strong> fazem chamadas diretas ao Firestore nem executam cálculos de negócio. Eles leem estado via <code>context.watch&lt;AppProvider&gt;()</code> e delegam ações para <code>AppProvider</code> ou para métodos de <code>FirestoreService</code> injetados localmente. Toda lógica pura (viabilidade, ranking) vive em <code>utils/viabilidade.dart</code> e é testável sem Firebase.</p>
+</div>
+
+
+<!-- ══════════════════════ 2 ══════════════════════ -->
+<h2><span class="num">02</span>Stack Tecnológica</h2>
+
+<table>
+  <tr><th>Camada</th><th>Tecnologia</th><th>Versão</th><th>Papel</th></tr>
+  <tr><td>Framework</td><td>Flutter</td><td>3.x (Dart ^3.11.4)</td><td>UI multiplataforma</td></tr>
+  <tr><td>Linguagem</td><td>Dart</td><td>^3.11.4</td><td>Tipagem estática, null-safety</td></tr>
+  <tr><td>Auth</td><td>Firebase Auth + google_sign_in</td><td>^6.5.2 / ^6.2.0</td><td>Login via Google OAuth</td></tr>
+  <tr><td>Banco</td><td>Cloud Firestore</td><td>^6.5.0</td><td>NoSQL em tempo real, streams</td></tr>
+  <tr><td>Push</td><td>Firebase Messaging (FCM)</td><td>^16.3.0</td><td>Notificações push (planejado)</td></tr>
+  <tr><td>Clima</td><td>OpenWeatherMap API</td><td>REST /data/2.5/forecast</td><td>Previsão de chuva (campo <code>pop</code>)</td></tr>
+  <tr><td>GPS</td><td>geolocator</td><td>^14.0.2</td><td>Check-in por localização</td></tr>
+  <tr><td>Estado</td><td>provider</td><td>^6.1.5+1</td><td>ChangeNotifier global</td></tr>
+  <tr><td>Roteamento</td><td>go_router</td><td>^17.2.3</td><td>Declarativo, ShellRoute, guards</td></tr>
+  <tr><td>HTTP</td><td>http</td><td>^1.6.0</td><td>Requisições à OpenWeatherMap</td></tr>
+  <tr><td>Datas</td><td>intl</td><td>^0.20.2</td><td>Formatação localizada pt_BR</td></tr>
+  <tr><td>Fontes</td><td>google_fonts</td><td>^6.2.1</td><td>Família Inter (toda a UI)</td></tr>
+  <tr><td>Env</td><td>flutter_dotenv</td><td>^5.2.1</td><td>API key OpenWeatherMap via <code>.env</code></td></tr>
+  <tr><td>URLs</td><td>url_launcher</td><td>^6.3.1</td><td>Abrir Google Maps externo</td></tr>
+</table>
+
+<div class="box warn">
+  <div class="t">⚠️ FCM — estado atual</div>
+  <p>O pacote <code>firebase_messaging</code> está declarado no <code>pubspec.yaml</code>, mas a camada de notificações push ainda não está implementada no código Flutter. Os alertas de W.O. e lembretes de check-in planejados (V1) requerem também Cloud Functions no Firebase — fora do escopo do app Flutter puro.</p>
+</div>
+
+
+<!-- ══════════════════════ 3 ══════════════════════ -->
+<h2><span class="num">03</span>Sequência de Inicialização</h2>
+<p>O <code>main.dart</code> executa as seguintes etapas em ordem antes de exibir qualquer UI:</p>
+
+<div class="init-seq">
+  <div class="init-step">
+    <div class="is-body">
+      <div class="is-name"><code>WidgetsFlutterBinding.ensureInitialized()</code></div>
+      <div class="is-desc">Garante que o binding Flutter esteja pronto antes de operações async.</div>
+    </div>
+  </div>
+  <div class="init-step">
+    <div class="is-body">
+      <div class="is-name"><code>dotenv.load(fileName: '.env')</code></div>
+      <div class="is-desc">Carrega as variáveis de ambiente, incluindo <code>OPENWEATHERMAP_KEY</code>. O arquivo <code>.env</code> fica nos assets mas <strong>não</strong> é commitado.</div>
+    </div>
+  </div>
+  <div class="init-step">
+    <div class="is-body">
+      <div class="is-name"><code>Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform)</code></div>
+      <div class="is-desc">Inicializa o SDK Firebase com as credenciais da plataforma geradas pelo FlutterFire CLI em <code>firebase_options.dart</code>.</div>
+    </div>
+  </div>
+  <div class="init-step">
+    <div class="is-body">
+      <div class="is-name"><code>initializeDateFormatting('pt_BR')</code></div>
+      <div class="is-desc">Carrega dados de localização do pacote <code>intl</code> para formatação de datas em português.</div>
+    </div>
+  </div>
+  <div class="init-step">
+    <div class="is-body">
+      <div class="is-name"><code>AppProvider()..init()</code> + <code>buildRouter(provider)</code></div>
+      <div class="is-desc">Cria o provider global e o router. O router recebe o provider como <code>refreshListenable</code> — qualquer <code>notifyListeners()</code> no provider reavalia os guards de navegação.</div>
+    </div>
+  </div>
+  <div class="init-step">
+    <div class="is-body">
+      <div class="is-name"><code>MaterialApp.router</code> com tema e <code>ChangeNotifierProvider</code></div>
+      <div class="is-desc">O app renderiza com tema Material 3 (fonte Inter, paleta azul slate). O provider é injetado na raiz da árvore de widgets.</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════ 5 ══════════════════════ -->
+<h2><span class="num">04</span>Padrão de Estado — AppProvider</h2>
+<p>O <code>AppProvider</code> é o <strong>único</strong> <code>ChangeNotifier</code> global do app. Ele encapsula o estado de autenticação, o perfil do usuário logado e os dados da atlética vinculada.</p>
+
+<table>
+  <tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr>
+  <tr><td><code>usuario</code></td><td><code>AppUser?</code></td><td>Perfil carregado do Firestore. <code>null</code> = não autenticado ou ainda carregando.</td></tr>
+  <tr><td><code>atletica</code></td><td><code>Atletica?</code></td><td>Atlética vinculada ao usuário. <code>null</code> se <code>atleticaId == kSemAtleticaId</code>.</td></tr>
+  <tr><td><code>carregando</code></td><td><code>bool</code></td><td>Indica operação assíncrona em andamento (login, cadastro, atualização).</td></tr>
+  <tr><td><code>erro</code></td><td><code>String?</code></td><td>Última mensagem de erro capturada.</td></tr>
+  <tr><td><code>isGestor</code></td><td><code>bool</code> (getter)</td><td><code>atletica.gestoresIds.contains(usuario.id)</code> — verificação em tempo real.</td></tr>
+  <tr><td><code>autenticado</code></td><td><code>bool</code> (getter)</td><td><code>_auth.currentUser != null</code>.</td></tr>
+  <tr><td><code>perfilCompleto</code></td><td><code>bool</code> (getter)</td><td><code>usuario != null</code> — indica se o cadastro pós-Google foi concluído.</td></tr>
+</table>
+
+<h4>Ciclo de vida do estado de auth</h4>
+<pre>
+<span class="k">void</span> init() {
+  <span class="c">// Escuta o stream do Firebase Auth — dispara sempre que o user muda</span>
+  _auth.authStateChanges.<span class="n">listen</span>((user) <span class="k">async</span> {
+    <span class="k">if</span> (user == <span class="k">null</span>) {
+      _usuario = <span class="k">null</span>; _atletica = <span class="k">null</span>;
+      notifyListeners(); <span class="c">// → GoRouter redireciona para /login</span>
+      <span class="k">return</span>;
+    }
+    <span class="k">await</span> _carregarPerfil(user.uid); <span class="c">// busca users + atleticas no Firestore</span>
+  });
+}
+</pre>
+
+<p>Telas leem o provider com <code>context.watch&lt;AppProvider&gt;()</code> para rebuilds reativos e com <code>context.read&lt;AppProvider&gt;()</code> para ações pontuais (ex: dentro de <code>onPressed</code>). Stores intermediários, Riverpod ou Bloc <strong>não são usados</strong> — o provider único é suficiente para a escala da V1.</p>
+
+
+<!-- ══════════════════════ 6 ══════════════════════ -->
+<h2><span class="num">05</span>Roteamento — GoRouter</h2>
+<p>O router é declarativo e construído com <code>go_router ^17</code>. A instância é criada em <code>main.dart</code> e recebe o <code>AppProvider</code> como <code>refreshListenable</code>.</p>
+
+<h3>Guard de navegação</h3>
+<pre>
+redirect: (context, state) {
+  <span class="k">if</span> (autenticado && carregando) <span class="k">return null</span>; <span class="c">// aguarda perfil carregar</span>
+
+  <span class="k">if</span> (!autenticado && path != <span class="s">'/login'</span>) <span class="k">return</span> <span class="s">'/login'</span>;
+  <span class="k">if</span> (autenticado && !perfilCompleto && path != <span class="s">'/cadastro'</span>) <span class="k">return</span> <span class="s">'/cadastro'</span>;
+  <span class="k">if</span> (autenticado && perfilCompleto && (path == <span class="s">'/login'</span> || path == <span class="s">'/cadastro'</span>)) {
+    <span class="k">return</span> <span class="s">'/'</span>;
+  }
+  <span class="k">return null</span>; <span class="c">// sem redirecionamento</span>
+},
+</pre>
+
+<h3>Mapa de rotas</h3>
+<table>
+  <tr><th>Path</th><th>Widget</th><th>Tipo</th><th>Acesso</th></tr>
+  <tr><td><code>/login</code></td><td><code>LoginScreen</code></td><td>Topo</td><td>Público</td></tr>
+  <tr><td><code>/cadastro</code></td><td><code>CadastroScreen</code></td><td>Topo</td><td>Auth sem perfil</td></tr>
+  <tr><td><code>/</code></td><td><code>EventosScreen</code></td><td>ShellRoute</td><td>Auth + perfil</td></tr>
+  <tr><td><code>/criar-evento</code></td><td><code>CriarEventoScreen</code></td><td>ShellRoute</td><td>Auth + perfil</td></tr>
+  <tr><td><code>/meus-eventos</code></td><td><code>MeusEventosScreen</code></td><td>ShellRoute</td><td>Auth + perfil</td></tr>
+  <tr><td><code>/perfil</code></td><td><code>PerfilScreen</code></td><td>ShellRoute</td><td>Auth + perfil</td></tr>
+  <tr><td><code>/evento/:id</code></td><td><code>EventoDetalheScreen</code></td><td>Topo</td><td>Auth + perfil</td></tr>
+  <tr><td><code>/editar-evento/:id</code></td><td><code>EditarEventoScreen</code></td><td>Topo</td><td>Gestor</td></tr>
+  <tr><td><code>/editar-perfil</code></td><td><code>EditarPerfilScreen</code></td><td>Topo</td><td>Auth + perfil</td></tr>
+  <tr><td><code>/dashboard</code></td><td><code>DashboardScreen</code></td><td>Topo</td><td>Gestor</td></tr>
+  <tr><td><code>/gerenciar-atletica</code></td><td><code>GerenciarAtleticaScreen</code></td><td>Topo</td><td>Gestor</td></tr>
+</table>
+
+<div class="box info">
+  <div class="t">ℹ️ ShellRoute e MainScaffold</div>
+  <p>As quatro rotas dentro do <code>ShellRoute</code> compartilham o <code>MainScaffold</code>, que renderiza a <strong>Bottom Navigation Bar</strong> com as tabs: Eventos (<code>/</code>), Criar (<code>/criar-evento</code>), Meus Eventos (<code>/meus-eventos</code>) e Perfil (<code>/perfil</code>). Rotas fora do shell (detalhe, editar, dashboard) não exibem a bottom nav.</p>
+</div>
+
+
+<!-- ══════════════════════ 7 ══════════════════════ -->
+<h2><span class="num">06</span>Camada de Serviços</h2>
+
+<div class="service-grid">
+  <div class="service-card">
+    <div class="sc-name">AuthService</div>
+    <div class="sc-dep">firebase_auth · google_sign_in</div>
+    <ul>
+      <li>Login via Google OAuth (<code>signInWithGoogle</code>)</li>
+      <li>Stream de mudanças de auth (<code>authStateChanges</code>)</li>
+      <li>Criação de perfil com <code>set(..., merge: true)</code></li>
+      <li>Sign-out (Google + Firebase)</li>
+      <li>Verificação se usuário já tem perfil no Firestore</li>
+    </ul>
+  </div>
+  <div class="service-card">
+    <div class="sc-name">FirestoreService</div>
+    <div class="sc-dep">cloud_firestore</div>
+    <ul>
+      <li>CRUD de usuários, atléticas, eventos</li>
+      <li>Streams reativos (<code>streamEvento</code>, <code>streamEventosAbertos</code>…)</li>
+      <li>Transações atômicas: confirmação, check-in, encerramento</li>
+      <li>Lógica de ranking: atualização lazy após check-in</li>
+      <li>Cache estático de nomes de atléticas</li>
+      <li>Dashboard: <code>getDashboardDetalhado</code> + analytics</li>
+    </ul>
+  </div>
+  <div class="service-card">
+    <div class="sc-name">WeatherService</div>
+    <div class="sc-dep">http · OpenWeatherMap REST</div>
+    <ul>
+      <li>Endpoint <code>/data/2.5/forecast</code> (5 dias / 3h)</li>
+      <li>Extrai campo <code>pop</code> (probabilidade de chuva) mais próximo do horário</li>
+      <li>Cache em memória por <code>(eventoId, dataHora)</code></li>
+      <li>Lança <code>WeatherForaDoAlcanceException</code> se evento &gt; 120h</li>
+      <li>API key via <code>dotenv.env['OPENWEATHERMAP_KEY']</code></li>
+    </ul>
+  </div>
+  <div class="service-card">
+    <div class="sc-name">LocationService</div>
+    <div class="sc-dep">geolocator</div>
+    <ul>
+      <li>Verifica e solicita permissão de localização</li>
+      <li>Obtém posição atual (alta precisão)</li>
+      <li>Implementa fórmula de Haversine para distância GPS</li>
+      <li>Raio de check-in: <strong>50 metros</strong></li>
+      <li><code>dentroDoRaio(latEvento, lonEvento)</code> retorna <code>bool</code></li>
+    </ul>
+  </div>
+</div>
+
+<h3>FirestoreService — métodos principais</h3>
+<table>
+  <tr><th>Método</th><th>Tipo</th><th>Descrição</th></tr>
+  <tr><td><code>streamEventosAbertos()</code></td><td>Stream</td><td>Eventos com status <code>aberto</code>, ordenados por viabilidade decrescente</td></tr>
+  <tr><td><code>streamEvento(id)</code></td><td>Stream</td><td>Escuta mudanças em tempo real de um evento específico</td></tr>
+  <tr><td><code>confirmarPresenca({eventoId, confirmacao, novoIndice})</code></td><td>Transaction</td><td>Atômica: adiciona confirmação ao evento + incrementa <code>totalConfirmacoes</code> do usuário</td></tr>
+  <tr><td><code>realizarCheckIn({eventoId, userId})</code></td><td>Transaction</td><td>Marca <code>checkInRealizado=true</code>, chama <code>_atualizarConfiabilidadeUsuario</code></td></tr>
+  <tr><td><code>encerrarEvento(eventoId)</code></td><td>Future</td><td>Status → encerrado, registra falta (zerando streak) para quem não fez check-in</td></tr>
+  <tr><td><code>getDashboardDetalhado(atleticaId)</code></td><td>Future</td><td>Agrega métricas: total por status, por esporte, taxa geral, top jogadores, últimos encerrados</td></tr>
+  <tr><td><code>getUsuariosBatch(ids)</code></td><td>Future</td><td>Busca múltiplos usuários em lotes de 10 (limite whereIn do Firestore)</td></tr>
+  <tr><td><code>getNomeAtletica(id)</code></td><td>Future (cached)</td><td>Cache estático em memória — evita re-fetch durante a sessão</td></tr>
+  <tr><td><code>getRankingAtletica(atleticaId)</code></td><td>Future</td><td>Usuários da atlética ordenados por <code>pontuacaoRanking</code> desc</td></tr>
+</table>
+
+<h4>Atualização lazy de ranking</h4>
+<p>O <code>pontuacaoRanking</code> de cada usuário é recalculado no momento em que ele faz check-in ou recebe uma falta. A fórmula usa o <code>maxComparecimentos</code> da atlética consultado na hora, garantindo que a normalização seja sempre relativa ao melhor jogador atual.</p>
+
+
+<!-- ══════════════════════ 8 ══════════════════════ -->
+<h2><span class="num">07</span>Modelos de Dados</h2>
+
+<h3>AppUser</h3>
+<pre>
+<span class="t">class</span> <span class="n">AppUser</span> {
+  <span class="k">final</span> String id;             <span class="c">// uid do Firebase Auth</span>
+  <span class="k">final</span> String nome;
+  <span class="k">final</span> String email;          <span class="c">// conta Google</span>
+  <span class="k">final</span> String curso;
+  <span class="k">final</span> String atleticaId;     <span class="c">// kSemAtleticaId se não vinculado</span>
+  <span class="k">final</span> <span class="t">UserRole</span> role;         <span class="c">// UserRole.atleta | UserRole.gestor</span>
+  <span class="k">final</span> double taxaConfiabilidade; <span class="c">// 0.0–1.0, padrão 0.5</span>
+  <span class="k">final</span> int streakPresencas;   <span class="c">// sequência consecutiva de check-ins</span>
+  <span class="k">final</span> int totalComparecimentos;
+  <span class="k">final</span> int totalConfirmacoes;
+  <span class="k">final</span> double pontuacaoRanking; <span class="c">// 70% taxa + 30% volume relativo</span>
+}
+</pre>
+
+<h3>Atletica</h3>
+<pre>
+<span class="t">class</span> <span class="n">Atletica</span> {
+  <span class="k">final</span> String id;
+  <span class="k">final</span> String nome;
+  <span class="k">final</span> String curso;             <span class="c">// curso da UFBA vinculado à atlética</span>
+  <span class="k">final</span> List&lt;<span class="t">GradeHoraria</span>&gt; gradeHoraria; <span class="c">// planejado para V3 (sugestão de horários)</span>
+  <span class="k">final</span> int faltasConsecutivas;   <span class="c">// contador de W.O.</span>
+  <span class="k">final</span> List&lt;String&gt; gestoresIds; <span class="c">// UIDs com permissão de gestor</span>
+  <span class="k">final</span> String codigoGestor;      <span class="c">// código secreto para ativar permissão</span>
+}
+</pre>
+
+<h3>Evento</h3>
+<pre>
+<span class="t">class</span> <span class="n">Evento</span> {
+  <span class="k">final</span> String id;
+  <span class="k">final</span> String atleticaId;
+  <span class="k">final</span> String criadoPorId;
+  <span class="k">final</span> String criadoPorNome;      <span class="c">// desnormalizado para exibição</span>
+  <span class="k">final</span> String nome;
+  <span class="k">final</span> String esporte;            <span class="c">// dinâmico — cadastrado pela atlética</span>
+  <span class="k">final</span> <span class="t">Local</span> local;
+  <span class="k">final</span> DateTime dataHora;
+  <span class="k">final</span> int minimoJogadores;       <span class="c">// mínimo para cálculo do FatorQuórum</span>
+  <span class="k">final</span> <span class="t">RegraAcesso</span> regraAcesso;  <span class="c">// aberto | parceiros | somenteAtletica</span>
+  <span class="k">final</span> List&lt;String&gt; atleticasParceiraIds;
+  <span class="k">final</span> List&lt;String&gt; materiaisNecessarios;
+  <span class="k">final</span> List&lt;<span class="t">ConfirmacaoUsuario</span>&gt; confirmados; <span class="c">// subcampo, não subcoleção</span>
+  <span class="k">final</span> double indiceViabilidade;  <span class="c">// recalculado a cada confirmação</span>
+  <span class="k">final</span> <span class="t">EventStatus</span> status;       <span class="c">// aberto | encerrado | cancelado</span>
+  <span class="k">final</span> List&lt;String&gt; cientesCancelamento; <span class="c">// UIDs que viram o dialog</span>
+}
+</pre>
+
+<h3>ConfirmacaoUsuario</h3>
+<pre>
+<span class="t">class</span> <span class="n">ConfirmacaoUsuario</span> {
+  <span class="k">final</span> String usuarioId;
+  <span class="k">final</span> String nomeUsuario;             <span class="c">// desnormalizado</span>
+  <span class="k">final</span> List&lt;String&gt; materiaisQueVaiLevar;
+  <span class="k">final</span> bool checkInRealizado;
+  <span class="k">final</span> DateTime? timestampCheckIn;
+  <span class="k">final</span> double taxaConfiabilidade;      <span class="c">// snapshot no momento da confirmação</span>
+}
+</pre>
+
+<div class="box warn">
+  <div class="t">⚠️ Desnormalização intencional</div>
+  <p>Os campos <code>nomeUsuario</code> e <code>taxaConfiabilidade</code> em <code>ConfirmacaoUsuario</code> são cópias do momento da confirmação. Isso evita N+1 reads ao exibir a lista de confirmados. O <code>taxaConfiabilidade</code> snapshot é usado para calcular o FatorConfiabilidade do evento — as flutuações posteriores do usuário não alteram retroativamente o índice do evento já calculado.</p>
+</div>
+
+<h3>Enums</h3>
+<table>
+  <tr><th>Enum</th><th>Valores</th><th>Descrição</th></tr>
+  <tr><td><code>UserRole</code></td><td><code>atleta</code> · <code>gestor</code></td><td>Role do usuário (gestor = <code>gestoresIds</code> da atlética)</td></tr>
+  <tr><td><code>RegraAcesso</code></td><td><code>aberto</code> · <code>parceiros</code> · <code>somenteAtletica</code></td><td>Quem pode confirmar presença no evento</td></tr>
+  <tr><td><code>EventStatus</code></td><td><code>aberto</code> · <code>encerrado</code> · <code>cancelado</code></td><td>Ciclo de vida do evento</td></tr>
+  <tr><td><code>NivelViabilidade</code></td><td><code>alta</code> · <code>media</code> · <code>baixa</code></td><td>Classificação semântica do índice (utils/)</td></tr>
+</table>
+
+
+<!-- ══════════════════════ 9 ══════════════════════ -->
+<h2><span class="num">08</span>Módulo de Cálculos — utils/viabilidade.dart</h2>
+<p>Toda lógica numérica está isolada em funções puras em <code>utils/viabilidade.dart</code>. Não há dependência de Flutter ou Firebase — testável com Dart puro.</p>
+
+<h3>Índice de Viabilidade</h3>
+<pre>
+double calcularViabilidade({
+  required int confirmados,
+  required int minimo,
+  required double chanceChuva,  <span class="c">// 0.0–100.0</span>
+  double? taxaFaltaMedia,       <span class="c">// null quando sem confirmados</span>
+}) {
+  <span class="k">final</span> fatorQuorum = minimo > 0 ? min(confirmados / minimo, 1.0) : 1.0;
+  <span class="k">final</span> fatorClima = 1.0 - (chanceChuva / 100);
+  <span class="k">if</span> (taxaFaltaMedia == null) {
+    <span class="c">// Sem confirmados: confiabilidade excluída; máximo = 65%</span>
+    return (fatorQuorum * 0.20) + (fatorClima * 0.45);
+  }
+  <span class="k">final</span> fatorConfiabilidade = 1.0 - taxaFaltaMedia;
+  return (fatorQuorum * 0.20) + (fatorClima * 0.45) + (fatorConfiabilidade * 0.35);
+}
+</pre>
+
+<table>
+  <tr><th>Fator</th><th>Peso</th><th>Cálculo</th></tr>
+  <tr><td>Quórum</td><td>20%</td><td><code>min(confirmados / minimo, 1.0)</code> — nunca penaliza quórum intencionalmente baixo</td></tr>
+  <tr><td>Clima</td><td>45%</td><td><code>1.0 - (chanceChuva / 100)</code> — campo <code>pop</code> da OpenWeatherMap</td></tr>
+  <tr><td>Confiabilidade</td><td>35%</td><td><code>1.0 - taxaFaltaMedia</code> — média da taxa de falta dos confirmados</td></tr>
+</table>
+
+<h3>Pontuação de Ranking</h3>
+<pre>
+double calcularPontuacaoRanking(
+    double taxaConfiabilidade, int totalComparecimentos, int maxComparecimentos) {
+  <span class="k">final</span> fatorVolume = maxComparecimentos > 0
+      ? totalComparecimentos / maxComparecimentos : 0.0;
+  return (taxaConfiabilidade * 0.70) + (fatorVolume * 0.30);
+}
+</pre>
+
+<p>A pontuação combina <strong>70% qualidade</strong> (taxa de comparecimento histórico) com <strong>30% volume</strong> (quantidade relativa ao melhor jogador da atlética). Atualização lazy: cada usuário recalcula sua pontuação ao fazer check-in ou receber uma falta.</p>
+
+<h3>Cobertura de testes</h3>
+<p>O arquivo <code>test/widget_test.dart</code> cobre os casos:</p>
+<ul>
+  <li>Condições ideais → viabilidade = 1.0</li>
+  <li>Quórum parcial (50%), clima 20%, confiabilidade ideal</li>
+  <li>Sem confirmados (<code>taxaFaltaMedia == null</code>) → máximo 65%</li>
+  <li>Classificação dos três níveis: Alta (≥70%), Méd. (40–69%), Baixa (&lt;40%)</li>
+</ul>
+
+
+<!-- ══════════════════════ 10 ══════════════════════ -->
+<h2><span class="num">09</span>Regras do Firestore (Security Rules)</h2>
+<p>As regras são declarativas e garantem que o cliente não possa ler ou gravar dados indevidamente. A autenticação é validada via <code>request.auth</code>.</p>
+
+<div class="rules"><span class="rk">rules_version</span> = <span class="rs">'2'</span>;
+<span class="rk">service</span> cloud.firestore {
+  match /databases/{database}/documents {
+
+    <span class="rc">// ── Usuários ──────────────────────────────────────────────────</span>
+    match /users/{userId} {
+      <span class="rc">// Leitura pública para autenticados (ranking, analytics)</span>
+      allow read: if request.auth != null;
+
+      <span class="rc">// Criação apenas pelo próprio usuário</span>
+      allow create: if request.auth != null
+                    &amp;&amp; request.auth.uid == userId;
+
+      <span class="rc">// Atualização: próprio usuário edita perfil</span>
+      allow update: if request.auth != null
+                    &amp;&amp; request.auth.uid == userId
+                    &amp;&amp; request.resource.data.diff(resource.data)
+                       .affectedKeys().hasOnly([
+                         'nome', 'curso', 'atleticaId',
+                         'role', 'taxaConfiabilidade',
+                         'streakPresencas', 'totalComparecimentos',
+                         'totalConfirmacoes', 'pontuacaoRanking'
+                       ]);
+    }
+
+    <span class="rc">// ── Atléticas ─────────────────────────────────────────────────</span>
+    match /atleticas/{atleticaId} {
+      allow read: if request.auth != null;
+
+      <span class="rc">// Apenas campos de gestão podem ser atualizados pelo cliente</span>
+      allow update: if request.auth != null
+                    &amp;&amp; request.resource.data.diff(resource.data)
+                       .affectedKeys().hasOnly(['gestoresIds', 'faltasConsecutivas']);
+    }
+
+    <span class="rc">// ── Eventos ───────────────────────────────────────────────────</span>
+    match /eventos/{eventoId} {
+      allow read: if request.auth != null;
+
+      <span class="rc">// Qualquer autenticado pode criar evento</span>
+      allow create: if request.auth != null;
+
+      <span class="rc">// Update: criador pode editar tudo; outros só campos de participação</span>
+      allow update: if request.auth != null &amp;&amp; (
+        resource.data.criadoPorId == request.auth.uid
+        || request.resource.data.diff(resource.data)
+           .affectedKeys().hasOnly([
+             'confirmados', 'indiceViabilidade',
+             'status', 'cientesCancelamento'
+           ])
+      );
+
+      <span class="rc">// Delete: apenas o criador</span>
+      allow delete: if request.auth != null
+                    &amp;&amp; resource.data.criadoPorId == request.auth.uid;
+    }
+  }
+}</div>
+
+<div class="box crit">
+  <div class="t">🔴 Ponto de atenção</div>
+  <p>O <code>allow update</code> em <code>/users/{userId}</code> inclui <code>taxaConfiabilidade</code>, <code>streakPresencas</code>, <code>totalComparecimentos</code> e <code>pontuacaoRanking</code> para permitir que o <code>encerrarEvento()</code> chame <code>_registrarFalta()</code> e <code>realizarCheckIn()</code> atualizem esses campos. Idealmente essas operações seriam feitas por Cloud Functions com Service Account — mas como não há servidor, a regra no cliente é a solução pragmática para a V1.</p>
+</div>
+
+
+<!-- ══════════════════════ 11 ══════════════════════ -->
+<h2><span class="num">10</span>Integrações Externas</h2>
+
+<h3>Firebase Auth — Google Sign-In</h3>
+<p>Fluxo de autenticação:</p>
+<div class="flow">
+  <div class="flow-step"><div class="icon">👤</div><div class="lbl">Usuário</div><div class="val">Toca "Entrar com Google"</div></div>
+  <div class="flow-arr">›</div>
+  <div class="flow-step"><div class="icon">🔑</div><div class="lbl">GoogleSignIn</div><div class="val">OAuth popup + idToken</div></div>
+  <div class="flow-arr">›</div>
+  <div class="flow-step"><div class="icon">🔥</div><div class="lbl">Firebase Auth</div><div class="val">Credencial → UID</div></div>
+  <div class="flow-arr">›</div>
+  <div class="flow-step"><div class="icon">📡</div><div class="lbl">authStateChanges</div><div class="val">AppProvider.init() detecta</div></div>
+  <div class="flow-arr">›</div>
+  <div class="flow-step"><div class="icon">🗄</div><div class="lbl">Firestore</div><div class="val">Carrega perfil ou redireciona /cadastro</div></div>
+</div>
+
+<h3>OpenWeatherMap</h3>
+<table>
+  <tr><th>Detalhe</th><th>Valor</th></tr>
+  <tr><td>Endpoint</td><td><code>api.openweathermap.org/data/2.5/forecast?lat=&amp;lon=&amp;appid=&amp;cnt=40</code></td></tr>
+  <tr><td>Campo extraído</td><td><code>pop</code> (probability of precipitation, 0.0–1.0) × 100 = %</td></tr>
+  <tr><td>Resolução temporal</td><td>Intervalos de 3h, janela de 5 dias (120h)</td></tr>
+  <tr><td>Seleção do slot</td><td>Slot com <code>abs(dt - dataHora)</code> mínimo</td></tr>
+  <tr><td>Cache</td><td>Em memória por <code>(eventoId_dataHoraISO)</code> — válido durante a sessão</td></tr>
+  <tr><td>Expiração</td><td>Evento além de 120h → <code>WeatherForaDoAlcanceException</code></td></tr>
+  <tr><td>API Key</td><td><code>dotenv.env['OPENWEATHERMAP_KEY']</code> (arquivo <code>.env</code> em assets)</td></tr>
+</table>
+
+<h3>GPS — Check-in</h3>
+<table>
+  <tr><th>Detalhe</th><th>Valor</th></tr>
+  <tr><td>Package</td><td><code>geolocator ^14.0.2</code></td></tr>
+  <tr><td>Permissão Android</td><td><code>ACCESS_FINE_LOCATION</code></td></tr>
+  <tr><td>Permissão iOS</td><td><code>NSLocationWhenInUseUsageDescription</code></td></tr>
+  <tr><td>Raio de check-in</td><td>50 metros</td></tr>
+  <tr><td>Fórmula de distância</td><td>Haversine — implementada em <code>LocationService._haversine()</code></td></tr>
+  <tr><td>Janela de check-in</td><td>2h antes até 6h após o horário do evento</td></tr>
+  <tr><td>Precisão solicitada</td><td><code>LocationAccuracy.high</code></td></tr>
+</table>
+
+
+<!-- ══════════════════════ 12 ══════════════════════ -->
+<h2><span class="num">11</span>Fluxos de Dados</h2>
+
+<h3>Confirmar presença</h3>
+<ol>
+  <li>Usuário marca materiais e toca "Confirmar Presença"</li>
+  <li>WeatherService verifica cache → se miss, chama API OpenWeatherMap</li>
+  <li><code>calcularViabilidade()</code> computa o novo índice com clima real e a taxa de falta média dos confirmados + novo confirmado</li>
+  <li>Transação Firestore atômica: atualiza <code>evento.confirmados[]</code> + <code>evento.indiceViabilidade</code> + incrementa <code>user.totalConfirmacoes</code></li>
+  <li>Stream <code>streamEvento(id)</code> dispara → widget rebuilda automaticamente</li>
+</ol>
+
+<h3>Check-in por GPS</h3>
+<ol>
+  <li>Usuário toca "Fazer Check-in por GPS"</li>
+  <li>Verifica janela de tempo (2h antes ↔ 6h depois)</li>
+  <li>LocationService solicita permissão se necessário</li>
+  <li>Obtém posição via GPS e calcula distância Haversine ao local do evento</li>
+  <li>Se ≤ 50m: transação Firestore marca <code>checkInRealizado = true</code> + <code>timestampCheckIn</code></li>
+  <li>Após transação: <code>_atualizarConfiabilidadeUsuario()</code> incrementa <code>totalComparecimentos</code>, <code>streakPresencas</code>, recalcula <code>taxaConfiabilidade</code></li>
+  <li>Atualização lazy do ranking: busca <code>maxComparecimentos</code> na atlética → grava <code>pontuacaoRanking</code></li>
+</ol>
+
+<h3>Encerramento de evento (gestor)</h3>
+<ol>
+  <li>Gestor toca "Encerrar Evento" (visível apenas após <code>dataHora</code> passada)</li>
+  <li><code>encerrarEvento(eventoId)</code>: muda <code>status → encerrado</code></li>
+  <li>Para cada confirmado sem check-in: <code>_registrarFalta(userId)</code> — zera <code>streakPresencas</code>, recalcula taxa</li>
+  <li>AlertDialog de resumo exibe: total confirmados, total check-ins, nomes de quem faltou</li>
+</ol>
+
+<h3>Recálculo de índice na abertura do detalhe</h3>
+<ol>
+  <li><code>_carregarClima(evento)</code> é chamado via <code>addPostFrameCallback</code></li>
+  <li>WeatherService retorna <code>chanceChuva</code> atual</li>
+  <li>Se o novo índice difere &gt; 1% do armazenado → <code>atualizarEvento(id, {indiceViabilidade})</code></li>
+  <li>Isso garante que o índice reflita o clima atual sem re-fetch desnecessário</li>
+</ol>
+
+
+<!-- ══════════════════════ 13 ══════════════════════ -->
+<h2><span class="num">12</span>Decisões Técnicas</h2>
+
+<table>
+  <tr><th>Decisão</th><th>Escolha</th><th>Alternativa considerada</th><th>Motivo</th></tr>
+  <tr><td>Gerência de estado</td><td>Provider (ChangeNotifier)</td><td>Riverpod, Bloc, GetX</td><td>Suficiente para a escala V1; sem boilerplate; compatível com GoRouter como refreshListenable</td></tr>
+  <tr><td>Roteamento</td><td>GoRouter declarativo</td><td>Navigator 2.0 manual</td><td>Guards via redirect callback; ShellRoute para bottom nav; URL-based para deep links</td></tr>
+  <tr><td>Banco de dados</td><td>Cloud Firestore</td><td>Firebase RTDB, Supabase</td><td>Modelo de documentos flexível; offline cache; streams reativos nativos; sem servidor próprio</td></tr>
+  <tr><td>Confirmações no evento</td><td>Subcampo <code>List&lt;Map&gt;</code></td><td>Subcoleção separada</td><td>Evita joins; leitura do evento já traz todos os confirmados; aceitável até ~500 confirmados</td></tr>
+  <tr><td>Atualização de ranking</td><td>Lazy (no check-in/falta)</td><td>Cloud Function trigger</td><td>Sem servidor ativo na V1; aceita pequena inconsistência temporária entre jogadores</td></tr>
+  <tr><td>Taxa de confiabilidade</td><td>Snapshot no momento da confirmação</td><td>Lookup ao exibir</td><td>Evita N reads ao exibir lista; taxa do snapshot é a relevante para o cálculo do evento</td></tr>
+  <tr><td>Gráficos</td><td>CustomPainter (sem lib)</td><td>fl_chart, charts_flutter</td><td>Evita dependência extra; gráficos donut simples são suficientes para a V1</td></tr>
+  <tr><td>API key de clima</td><td><code>.env</code> em assets</td><td>Hardcoded, backend proxy</td><td>Compromisso: segurança baixa mas sem servidor; aceitável para API gratuita com limite</td></tr>
+  <tr><td>Cache de clima</td><td>Em memória por sessão</td><td>Firestore, hive, shared_prefs</td><td>Clima de um evento raramente muda em minutos; cache de sessão é suficiente</td></tr>
+  <tr><td>Encerramento de evento</td><td>Manual pelo gestor</td><td>Cloud Function automática</td><td>Sem servidor na V1; encerramento manual pelo gestor é o fluxo natural</td></tr>
+</table>
+
+
+<!-- ══════════════════════ 14 ══════════════════════ -->
+<h2><span class="num">13</span>Dependências (pubspec.yaml)</h2>
+
+<table>
+  <tr><th>Pacote</th><th>Versão</th><th>Uso</th></tr>
+  <tr><td><code>firebase_core</code></td><td>^4.10.0</td><td>Inicialização do SDK Firebase</td></tr>
+  <tr><td><code>firebase_auth</code></td><td>^6.5.2</td><td>Autenticação Firebase</td></tr>
+  <tr><td><code>google_sign_in</code></td><td>^6.2.0</td><td>OAuth Google para Auth</td></tr>
+  <tr><td><code>cloud_firestore</code></td><td>^6.5.0</td><td>Banco de dados Firestore</td></tr>
+  <tr><td><code>firebase_messaging</code></td><td>^16.3.0</td><td>Push notifications FCM (planejado)</td></tr>
+  <tr><td><code>geolocator</code></td><td>^14.0.2</td><td>GPS para check-in</td></tr>
+  <tr><td><code>http</code></td><td>^1.6.0</td><td>Requisições HTTP (OpenWeatherMap)</td></tr>
+  <tr><td><code>intl</code></td><td>^0.20.2</td><td>Formatação de datas em pt_BR</td></tr>
+  <tr><td><code>go_router</code></td><td>^17.2.3</td><td>Roteamento declarativo</td></tr>
+  <tr><td><code>provider</code></td><td>^6.1.5+1</td><td>Gerência de estado</td></tr>
+  <tr><td><code>url_launcher</code></td><td>^6.3.1</td><td>Abrir Google Maps externo</td></tr>
+  <tr><td><code>flutter_dotenv</code></td><td>^5.2.1</td><td>Variáveis de ambiente (.env)</td></tr>
+  <tr><td><code>google_fonts</code></td><td>^6.2.1</td><td>Fonte Inter em toda a UI</td></tr>
+  <tr><td><code>flutter_lints</code></td><td>^6.0.0</td><td>Lint (dev dependency)</td></tr>
+  <tr><td><code>flutter_test</code></td><td>SDK</td><td>Testes unitários (dev dependency)</td></tr>
+</table>
+
+<div class="box green">
+  <div class="t">✅ Zero dependências de UI de terceiros</div>
+  <p>Todos os componentes visuais (cards, badges, bottom nav, gráficos de pizza, barras de progresso) são implementados com Flutter puro (Material 3 + CustomPainter). Isso elimina conflitos de versão e facilita customização total do design.</p>
+</div>
+
+</div><!-- /page -->
+</body>
+</html>

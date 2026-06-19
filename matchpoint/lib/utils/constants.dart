@@ -1,0 +1,1 @@
+const kSemAtleticaId = 'sem-atletica';
