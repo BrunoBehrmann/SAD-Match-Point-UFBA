@@ -1,32 +1,6 @@
 # MatchPoint UFBA
 
-App Flutter para atléticas da UFBA organizarem treinos e jogos esportivos.
-
-O sistema central é o **Índice de Viabilidade** — um score de 0–100% que indica a probabilidade de um evento acontecer com sucesso, combinando quórum de jogadores, condições climáticas e histórico de confiabilidade dos participantes. Este app é um **SAD (Sistema de Apoio à Decisão)**: apoia o organizador a tomar decisões melhores, não substitui o julgamento humano.
-
-**Repositório:** https://github.com/BrunoBehrmann/SAD-Match-Point-UFBA
-
 **Documento acadêmico (SAD):** `documento/ADMF01_Behrmann_Bruno.pdf`
-
----
-
-## Índice de Viabilidade
-
-```
-IV = (FatorQuórum × 0.20) + (FatorClima × 0.45) + (FatorConfiabilidade × 0.35)
-```
-
-| Fator | Cálculo |
-|---|---|
-| FatorQuórum | `min(confirmados / minimo, 1.0)` |
-| FatorClima | `1.0 - (chanceChuva / 100)` via OpenWeatherMap |
-| FatorConfiabilidade | `1.0 - taxaFaltaMedia` dos confirmados |
-
-| Badge | Range | Significado |
-|---|---|---|
-| Alta | >= 70% | Alta probabilidade de acontecer |
-| Méd. | 40–69% | Risco moderado |
-| Baixa | < 40% | Baixa viabilidade |
 
 ---
 
